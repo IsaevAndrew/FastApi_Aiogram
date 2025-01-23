@@ -1,0 +1,10 @@
+fastapi~=0.115.6
+uvicorn
+aiogram
+asyncpg
+requests
+sqlalchemy~=2.0.37
+apscheduler
+psycopg2-binary
+python-dotenv
+pydantic~=2.10.5
