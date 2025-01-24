@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Float, TIMESTAMP, BigInteger
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 from pydantic import BaseModel, Field
@@ -9,7 +9,7 @@ Base = declarative_base()
 class Product(Base):
     __tablename__ = "products"
 
-    artikul = Column(Integer, primary_key=True, index=True, unique=True,
+    artikul = Column(BigInteger, primary_key=True, index=True, unique=True,
                      nullable=False)  # Артикул товара
     name = Column(String, nullable=False)  # Название товара
     price = Column(Float, nullable=False)  # Цена

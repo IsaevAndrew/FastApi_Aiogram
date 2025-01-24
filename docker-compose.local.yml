@@ -15,7 +15,6 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - backend
-
   app:
     build:
       context: .
@@ -35,7 +34,21 @@ services:
       - .:/code
     command: >
       bash -c "python app/db/init_db.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-
+  bot:
+    build: .
+    container_name: bot
+    depends_on:
+      - db
+    command: >
+      bash -c "python3 bot/main.py"
+    volumes:
+      - .:/code
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./.env.local
+    networks:
+      - backend
 volumes:
   db_data:
 

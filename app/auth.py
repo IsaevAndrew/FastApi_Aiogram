@@ -8,7 +8,6 @@ SECRET_TOKEN = SECRET_TOKEN
 
 def validate_token(
         credentials: HTTPAuthorizationCredentials = Security(security)):
-    print(SECRET_TOKEN, credentials.credentials)
     if credentials.credentials != SECRET_TOKEN:
         raise HTTPException(
             status_code=403,

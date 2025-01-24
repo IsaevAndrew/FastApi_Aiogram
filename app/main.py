@@ -86,23 +86,30 @@ async def add_product(request: ProductRequest,
 
 @app.get("/api/v1/subscribe/{artikul}", dependencies=[Depends(validate_token)])
 async def subscribe_product(artikul: int, db: AsyncSession = Depends(get_db)):
-    stmt = select(Subscription).where(Subscription.artikul == artikul)
-    result = await db.execute(stmt)
-    existing_subscription = result.scalar_one_or_none()
-
-    if existing_subscription:
-        raise HTTPException(status_code=400,
-                            detail="Подписка на этот артикул уже оформлена.")
-
-    new_subscription = Subscription(artikul=artikul)
-    db.add(new_subscription)
-    await db.commit()
-    product_data = await add_product(ProductRequest(artikul=artikul), db)
-    add_periodic_task(task_id=f"update_{artikul}", artikul=artikul, db=db)
-    return {
-        **product_data,
-        "message": "Подписка оформлена. Данные о товаре успешно сохранены."
-    }
+    try:
+        stmt = select(Subscription).where(Subscription.artikul == artikul)
+        result = await db.execute(stmt)
+        existing_subscription = result.scalar_one_or_none()
+        if existing_subscription:
+            raise HTTPException(status_code=400,
+                                detail="Подписка на этот артикул уже оформлена.")
+        product_data = await add_product(ProductRequest(artikul=artikul), db)
+        if not product_data:
+            raise HTTPException(status_code=404,
+                                detail=f"Товар с артикулом {artikul} отсутствует на Wildberries.")
+        new_subscription = Subscription(artikul=artikul)
+        db.add(new_subscription)
+        await db.commit()
+        add_periodic_task(task_id=f"update_{artikul}", artikul=artikul)
+        return {
+            **product_data,
+            "message": "Подписка оформлена. Данные о товаре успешно сохранены."
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500,
+                            detail=f"Ошибка при подписке на товар: {str(e)}")
 
 
 def add_periodic_task(task_id: str, artikul: int):
